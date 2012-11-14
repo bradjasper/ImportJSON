@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Trevor Lohrbeer (@FastFedora)
   ====================================================================================================================================
-  Version:      1.0
+  Version:      1.1
   Project Page: http://blog.fastfedora.com/projects/import-json
   Copyright:    (c) 2012 by Trevor Lohrbeer
   License:      GNU General Public License, version 3 (GPL-3.0) 
@@ -18,6 +18,11 @@
    - Support for OAuth authenticated APIs
 
   Or feel free to write these and add on to the library yourself!
+  ------------------------------------------------------------------------------------------------------------------------------------
+  Changelog:
+  
+  1.1    Added support for the noHeaders option
+  1.0    Initial release
  *====================================================================================================================================*/
 /**
  * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create 
@@ -36,6 +41,7 @@
  *    noInherit:     Don't inherit values from parent elements
  *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
+ *    noHeaders:     Don't include headers, only the data
  *    debugLocation: Prepend each value with the row & column it belongs in
  *
  * For example:
@@ -122,7 +128,7 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
   
-  return data;
+  return hasOption_(options, "noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
 }
 
 /** 
