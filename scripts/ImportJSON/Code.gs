@@ -1,26 +1,29 @@
 /*====================================================================================================================================*
   ImportJSON by Trevor Lohrbeer (@FastFedora)
   ====================================================================================================================================
-  Version:      1.1
+  Version:      1.2.0
   Project Page: http://blog.fastfedora.com/projects/import-json
-  Copyright:    (c) 2012 by Trevor Lohrbeer
+  Copyright:    (c) 2012-2013 by Trevor Lohrbeer
   License:      GNU General Public License, version 3 (GPL-3.0) 
                 http://www.opensource.org/licenses/gpl-3.0.html
   ------------------------------------------------------------------------------------------------------------------------------------
   A library for importing JSON feeds into Google spreadsheets. Functions include:
 
      ImportJSON            For use by end users to import a JSON feed from a URL 
+     ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
 
   Future enhancements may include:
 
    - Support for a real XPath like syntax similar to ImportXML for the query parameter
-   - Support for OAuth authenticated APIs
+   - Support for OAuth authenticated APIs (see AddOAuthService__ function for failed experiment)
 
   Or feel free to write these and add on to the library yourself!
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
+  1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
+  1.1.1  Added a version number using Google Scripts Versioning so other developers can use the library
   1.1    Added support for the noHeaders option
   1.0    Initial release
  *====================================================================================================================================*/
@@ -49,40 +52,109 @@
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "/feed/entry/title,/feed/entry/content",
  *               "noInherit,noTruncate,rawHeaders")
  * 
- * @param {url} the URL to a public JSON feed
- * @param {query} a comma-separated lists of paths to import. Any path starting with one of these paths gets imported.
- * @param {options} a comma-separated list of options that alter processing of the data
+ * @param {url}          the URL to a public JSON feed
+ * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
+ * @param {parseOptions} a comma-separated list of options that alter processing of the data
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSON(url, query, options) {
-  return ImportJSONAdvanced(url, query, options, includeXPath_, defaultTransform_);
+function ImportJSON(url, query, parseOptions) {
+  return ImportJSONAdvanced(url, null, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
+/**
+ * Imports a JSON feed via a POST request and returns the results to be inserted into a Google Spreadsheet. The JSON feed is 
+ * flattened to create a two-dimensional array. The first row contains the headers, with each column header indicating the path to 
+ * that data in the JSON feed. The remaining rows contain the data.
+ *
+ * To retrieve the JSON, a POST request is sent to the URL and the payload is passed as the content of the request using the content 
+ * type "application/x-www-form-urlencoded". If the fetchOptions define a value for "method", "payload" or "contentType", these 
+ * values will take precedent. For example, advanced users can use this to make this function pass XML as the payload using a GET 
+ * request and a content type of "application/xml; charset=utf-8". For more information on the available fetch options, see
+ * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app . At this time the "headers" option is not supported.
+ * 
+ * By default, the returned data gets transformed so it looks more like a normal data import. Specifically:
+ *
+ *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values 
+ *     of the rows representing their parent elements.
+ *   - Values longer than 256 characters get truncated.
+ *   - Headers have slashes converted to spaces, common prefixes removed and the resulting text converted to title case. 
+ *
+ * To change this behavior, pass in one of these values in the options parameter:
+ *
+ *    noInherit:     Don't inherit values from parent elements
+ *    noTruncate:    Don't truncate values
+ *    rawHeaders:    Don't prettify headers
+ *    noHeaders:     Don't include headers, only the data
+ *    debugLocation: Prepend each value with the row & column it belongs in
+ *
+ * For example:
+ *
+ *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
+ *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
+ * 
+ * @param {url}          the URL to a public JSON feed
+ * @param {payload}      the content to pass with the POST request; usually a URL encoded list of parameters separated by ampersands
+ * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
+ * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
+ * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ *
+ * @return a two-dimensional array containing the data, with the first row containing headers
+ **/
+function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
+  var postOptions = parseToObject_(fetchOptions);
+  
+  if (postOptions["method"] == null) {
+    postOptions["method"] = "POST";
+  }
+
+  if (postOptions["payload"] == null) {
+    postOptions["payload"] = payload;
+  }
+
+  if (postOptions["contentType"] == null) {
+    postOptions["contentType"] = "application/x-www-form-urlencoded";
+  }
+
+  convertToBool_(postOptions, "validateHttpsCertificates");
+  convertToBool_(postOptions, "useIntranet");
+  convertToBool_(postOptions, "followRedirects");
+  convertToBool_(postOptions, "muteHttpExceptions");
+  
+  return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
 /**
  * An advanced version of ImportJSON designed to be easily extended by a script. This version cannot be called from within a 
  * spreadsheet.
- *
+ * 
  * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create 
  * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in 
  * the JSON feed. The remaining rows contain the data. 
+ *
+ * The fetchOptions can be used to change how the JSON feed is retrieved. For instance, the "method" and "payload" options can be 
+ * set to pass a POST request with post parameters. For more information on the available parameters, see 
+ * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app .
  *
  * Use the include and transformation functions to determine what to include in the import and how to transform the data after it is
  * imported. 
  *
  * For example:
  *
- *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", 
- *               "/feed/entry",
- *                function (query, path) { return path.indexOf(query) == 0; },
- *                function (data, row, column) { data[row][column] = data[row][column].toString().substr(0, 100); } )
+ *   ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", 
+ *              new Object() { "method" : "post", "payload" : "user=bob&apikey=xxxx" },
+ *              "/feed/entry",
+ *              "",
+ *              function (query, path) { return path.indexOf(query) == 0; },
+ *              function (data, row, column) { data[row][column] = data[row][column].toString().substr(0, 100); } )
  *
  * In this example, the import function checks to see if the path to the data being imported starts with the query. The transform 
  * function takes the data and truncates it. For more robust versions of these functions, see the internal code of this library.
  *
  * @param {url}           the URL to a public JSON feed
+ * @param {fetchOptions}  an object whose properties are options used to retrieve the JSON feed from the URL
  * @param {query}         the query passed to the include function
- * @param {options}       a comma-separated list of options that may alter processing of the data
+ * @param {parseOptions}  a comma-separated list of options that may alter processing of the data
  * @param {includeFunc}   a function with the signature func(query, path, options) that returns true if the data element at the given path
  *                        should be included or false otherwise. 
  * @param {transformFunc} a function with the signature func(data, row, column, options) where data is a 2-dimensional array of the data 
@@ -91,11 +163,11 @@ function ImportJSON(url, query, options) {
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSONAdvanced(url, query, options, includeFunc, transformFunc) {
-  var jsondata = UrlFetchApp.fetch(url);
+function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
+  var jsondata = UrlFetchApp.fetch(url, fetchOptions);
   var object   = JSON.parse(jsondata.getContentText());
   
-  return parseJSONObject_(object, query, options, includeFunc, transformFunc);
+  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
 }
 
 /** 
@@ -107,6 +179,60 @@ function ImportJSONAdvanced(url, query, options, includeFunc, transformFunc) {
  */
 function URLEncode(value) {
   return encodeURIComponent(value.toString());  
+}
+
+/**
+ * Adds an oAuth service using the given name and the list of properties.
+ *
+ * @note This method is an experiment in trying to figure out how to add an oAuth service without having to specify it on each 
+ *       ImportJSON call. The idea was to call this method in the first cell of a spreadsheet, and then use ImportJSON in other
+ *       cells. This didn't work, but leaving this in here for further experimentation later. 
+ *
+ *       The test I did was to add the following into the A1:
+ *  
+ *           =AddOAuthService("twitter", "https://api.twitter.com/oauth/access_token", 
+ *                            "https://api.twitter.com/oauth/request_token", "https://api.twitter.com/oauth/authorize", 
+ *                            "<my consumer key>", "<my consumer secret>", "", "")
+ *
+ *       Information on obtaining a consumer key & secret for Twitter can be found at https://dev.twitter.com/docs/auth/using-oauth
+ *
+ *       Then I added the following into A2:
+ *
+ *           =ImportJSONViaPost("https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=fastfedora&count=2", "",
+ *                              "oAuthServiceName=twitter,oAuthUseToken=always", "/", "")
+ *
+ *       I received an error that the "oAuthServiceName" was not a valid value. [twl 18.Apr.13]
+ */
+function AddOAuthService__(name, accessTokenUrl, requestTokenUrl, authorizationUrl, consumerKey, consumerSecret, method, paramLocation) {
+  var oAuthConfig = UrlFetchApp.addOAuthService(name);
+
+  if (accessTokenUrl != null && accessTokenUrl.length > 0) {
+    oAuthConfig.setAccessTokenUrl(accessTokenUrl);
+  }
+  
+  if (requestTokenUrl != null && requestTokenUrl.length > 0) {
+    oAuthConfig.setRequestTokenUrl(requestTokenUrl);
+  }
+  
+  if (authorizationUrl != null && authorizationUrl.length > 0) {
+    oAuthConfig.setAuthorizationUrl(authorizationUrl);
+  }
+  
+  if (consumerKey != null && consumerKey.length > 0) {
+    oAuthConfig.setConsumerKey(consumerKey);
+  }
+  
+  if (consumerSecret != null && consumerSecret.length > 0) {
+    oAuthConfig.setConsumerSecret(consumerSecret);
+  }
+  
+  if (method != null && method.length > 0) {
+    oAuthConfig.setMethod(method);
+  }
+  
+  if (paramLocation != null && paramLocation.length > 0) {
+    oAuthConfig.setParamLocation(paramLocation);
+  }
 }
 
 /** 
@@ -353,4 +479,45 @@ function toTitleCase_(text) {
  */
 function hasOption_(options, option) {
   return options && options.indexOf(option) >= 0;
+}
+
+/** 
+ * Parses the given string into an object, trimming any leading or trailing spaces from the keys.
+ */
+function parseToObject_(text) {
+  var map     = new Object();
+  var entries = (text != null && text.trim().length > 0) ? text.toString().split(",") : new Array();
+  
+  for (var i = 0; i < entries.length; i++) {
+    addToMap_(map, entries[i]);  
+  }
+  
+  return map;
+}
+
+/** 
+ * Parses the given entry and adds it to the given map, trimming any leading or trailing spaces from the key.
+ */
+function addToMap_(map, entry) {
+  var equalsIndex = entry.indexOf("=");  
+  var key         = (equalsIndex != -1) ? entry.substring(0, equalsIndex) : entry;
+  var value       = (key.length + 1 < entry.length) ? entry.substring(key.length + 1) : "";
+  
+  map[key.trim()] = value;
+}
+
+/** 
+ * Returns the given value as a boolean.
+ */
+function toBool_(value) {
+  return value == null ? false : (value.toString().toLowerCase() == "true" ? true : false);
+}
+
+/**
+ * Converts the value for the given key in the given map to a bool.
+ */
+function convertToBool_(map, key) {
+  if (map[key] != null) {
+    map[key] = toBool_(map[key]);
+  }  
 }
