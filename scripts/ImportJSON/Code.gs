@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Trevor Lohrbeer (@FastFedora)
   ====================================================================================================================================
-  Version:      1.2.0
+  Version:      1.2.1
   Project Page: http://blog.fastfedora.com/projects/import-json
   Copyright:    (c) 2012-2013 by Trevor Lohrbeer
   License:      GNU General Public License, version 3 (GPL-3.0) 
@@ -22,6 +22,7 @@
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
+  1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
   1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
   1.1.1  Added a version number using Google Scripts Versioning so other developers can use the library
   1.1    Added support for the noHeaders option
@@ -250,7 +251,7 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
     options = options.toString().split(",");
   }
     
-  parseData_(headers, data, "", 1, object, query, options, includeFunc);
+  parseData_(headers, data, "", {rowIndex: 1}, object, query, options, includeFunc);
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
   
@@ -274,20 +275,23 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
  *
  * If the value is a scalar, the value is inserted directly into the data array.
  */
-function parseData_(headers, data, path, rowIndex, value, query, options, includeFunc) {
+function parseData_(headers, data, path, state, value, query, options, includeFunc) {
   var dataInserted = false;
-  
-  if (isObject_(value)) {
-    for (key in value) {
-      if (parseData_(headers, data, path + "/" + key, rowIndex, value[key], query, options, includeFunc)) {
-        dataInserted = true; 
+
+  if (Array.isArray(value) && isObjectArray_(value)) {
+    for (var i = 0; i < value.length; i++) {
+      if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
+        dataInserted = true;
+
+        if (i > 0 && data[state.rowIndex]) {
+          state.rowIndex++;
+        }
       }
     }
-  } else if (Array.isArray(value) && isObjectArray_(value)) {
-    for (var i = 0; i < value.length; i++) {
-      if (parseData_(headers, data, path, rowIndex, value[i], query, options, includeFunc)) {
-        dataInserted = true;
-        rowIndex++;
+  } else if (isObject_(value)) {
+    for (key in value) {
+      if (parseData_(headers, data, path + "/" + key, state, value[key], query, options, includeFunc)) {
+        dataInserted = true; 
       }
     }
   } else if (!includeFunc || includeFunc(query, path, options)) {
@@ -297,8 +301,8 @@ function parseData_(headers, data, path, rowIndex, value, query, options, includ
     }
     
     // Insert new row if one doesn't already exist
-    if (!data[rowIndex]) {
-      data[rowIndex] = new Array();
+    if (!data[state.rowIndex]) {
+      data[state.rowIndex] = new Array();
     }
     
     // Add a new header if one doesn't exist
@@ -307,7 +311,7 @@ function parseData_(headers, data, path, rowIndex, value, query, options, includ
     }
     
     // Insert the data
-    data[rowIndex][headers[path]] = value;
+    data[state.rowIndex][headers[path]] = value;
     dataInserted = true;
   }
   
@@ -330,6 +334,7 @@ function parseHeaders_(headers, data) {
  */
 function transformData_(data, options, transformFunc) {
   for (var i = 0; i < data.length; i++) {
+Logger.log("transforming: " + i + " -- " + data[i]);
     for (var j = 0; j < data[i].length; j++) {
       transformFunc(data, i, j, options);
     }
