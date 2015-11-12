@@ -114,7 +114,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
   }
 
   if (postOptions["contentType"] == null) {
-    postOptions["contentType"] = "application/x-www-form-urlencoded";
+    postOptions["contentType"] = "application/json";
   }
 
   convertToBool_(postOptions, "validateHttpsCertificates");
@@ -283,7 +283,7 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
       if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
         dataInserted = true;
 
-        if (i > 0 && data[state.rowIndex]) {
+        if (i >= 0 && data[state.rowIndex]) {
           state.rowIndex++;
         }
       }
@@ -295,9 +295,14 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
       }
     }
   } else if (!includeFunc || includeFunc(query, path, options)) {
-    // Handle arrays containing only scalar values
+    // Handle arrays containing objects
     if (Array.isArray(value)) {
-      value = value.join(); 
+      value.forEach(function(ent) {
+        for (key in ent) {
+          if (parseData_(headers, data, path + "/" + key, state, value[key], query, options, includeFunc)) {
+            dataInserted = true; 
+          }
+        }})
     }
     
     // Insert new row if one doesn't already exist
