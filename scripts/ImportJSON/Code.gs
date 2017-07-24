@@ -283,7 +283,7 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
       if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
         dataInserted = true;
 
-        if (i > 0 && data[state.rowIndex]) {
+        if (data[state.rowIndex]) {
           state.rowIndex++;
         }
       }
@@ -525,3 +525,17 @@ function convertToBool_(map, key) {
     map[key] = toBool_(map[key]);
   }  
 }
+
+/* allows for JSON import with a auth code header, like ASANA */
+
+function ImportJSONWithToken(url, query, parseOptions, token) {
+   var fetchOptions = {
+      "headers" : {
+        "Authorization" : "Bearer " + token
+      },
+      muteHttpExceptions: true
+   };
+
+  return ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
