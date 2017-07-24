@@ -1,0 +1,275 @@
+.sharing {
+	padding: 0 0 10px 0;
+}
+
+.sharing_label {
+	line-height: 24px;
+	padding: 10px 10px 0 0;
+	float: left;
+	font-weight: bold;
+}
+
+.sharing ul, .sharing-hidden ul {
+	list-style: none outside none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	float: left;
+	text-indent: 0 !important;
+}
+
+.sharing li, .sharing-hidden li {
+	display: list-item !important;
+	list-style: none outside none !important;
+	float: left;
+	padding: 10px 0 0 0 !important;
+	margin: 0 10px 0 0 !important;
+	background: none !important;
+}
+
+.sharing li div, .sharing-hidden li div {
+	margin: 0 !important;
+}
+
+.sharing li:before, .sharing-hidden li:before {
+	content: none !important;
+}
+
+
+.sharing li a, .sharing-hidden li a {
+	padding: 0px 0 0 20px;
+	line-height: 24px;
+	display: block;
+}
+
+.sharing li.share-regular a, .sharing-hidden li a, .sharing li.share-regular a:hover, .sharing-hidden li a:hover {
+	border: none !important;
+}
+
+.share-custom a.sharing-anchor{
+	color: #666;
+	font-size:11px;
+	font-family: arial, tahoma, verdana, sans-serif;
+	text-decoration: none;
+}
+
+.sharing li.share-custom{
+
+}
+
+.sharing-hidden a{
+	color: #666;
+}
+
+.sharing a.share-twitter,.sharing-hidden a.share-twitter { background: url('images/twitter.png') no-repeat center left; }
+.sharing a.share-facebook,.sharing-hidden a.share-facebook { background: url('images/facebook.png') no-repeat center left; }
+.sharing a.share-email,.sharing-hidden a.share-email { background: url('images/email.png') no-repeat center left; }
+.sharing a.share-digg,.sharing-hidden a.share-digg { background: url('images/digg.png') no-repeat center left; }
+.sharing a.share-stumbleupon,.sharing-hidden a.share-stumbleupon { background: url('images/stumbleupon.png') no-repeat center left; }
+.sharing a.share-reddit,.sharing-hidden a.share-reddit { background: url('images/reddit.png') no-repeat center left; }
+.sharing a.share-print,.sharing-hidden a.share-print { background: url('images/print.png') no-repeat center left; }
+.sharing a.share-press-this,.sharing-hidden a.share-press-this { background: url('images/wordpress.png') no-repeat center left; }
+.sharing a.share-linkedin,.sharing-hidden a.share-linkedin { background: url('images/linkedin.png') no-repeat center left; }
+
+.sharing div.twitter_button { padding: 2px 0; }
+.sharing div.reddit_button { padding: 2px 0 0 0; }
+.sharing div.stumbleupon_button { padding: 3px; }
+.sharing div.digg_button { font-size: 0px; padding: 4px 0 0 0; }
+.sharing div.facebook_button { font-size: 0px; padding: 3px 0;  height: 18px;}
+.sharing div.like_button { font-size: 0px; padding: 2px 0;  height: 18px;}
+.sharing div.linkedin_button { padding-top: 0; line-height: 16px; }
+
+.sharing-hidden li {
+	width: 130px;
+}
+
+.sharing-hidden div.twitter_button { padding: 0; }
+.sharing-hidden div.reddit_button { padding: 0; }
+.sharing-hidden div.stumbleupon_button { padding: 0; }
+.sharing-hidden div.digg_button { font-size: 0px; padding: 0; }
+.sharing-hidden div.facebook_button { font-size: 0px; padding: 0;}
+.sharing-hidden div.like_button { font-size: 0px; padding: 0;}
+.sharing-hidden div.linkedin_button { padding: 0; }
+
+
+.sharing div.facebook_button a, .sharing-hidden.facebook_button a {
+	line-height: none;
+	padding: 0;
+}
+
+#sharing_email {
+	background-color: #fff;
+	padding: 15px;
+	width: 312px;
+	position: absolute;
+	border: 2px solid #6e6e6e;
+	z-index: 1001;
+	text-align: left;
+}
+
+#sharing_email .errors {
+	color: #fff;
+	background-color: #771a09;
+	font-size: 11px;
+	padding: 5px 8px;
+	line-height: 11px;
+	margin: 10px 0 0 0;
+}
+
+#sharing_email label {
+	font-size: 11px;
+	color: #333;
+	font-weight: bold;
+	display: block;
+	padding: 0 0 4px 0;
+	text-align: left;
+}
+
+#sharing_email input[type="text"] {
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+#sharing_email .sharing_send {
+}
+
+#sharing_email .sharing_cancel {
+	padding: 0 0 0 10px;
+	font-size: 11px;
+}
+
+#sharing_email .recaptcha {
+	width: 312px;
+	height: 123px;
+	margin: 10px 0 14px 0;
+}
+
+#sharing_background {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: black;
+	z-index: 1000;
+}
+
+.sharing-hidden {
+	padding: 10px 0 0 0;
+}
+
+.sharing-hidden .inner {
+	border: 2px solid #6e6e6e;
+	padding: 15px 0 15px 0;
+	background: #fff;
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0px !important;
+	width: 300px;
+	z-index: 1000;
+}
+
+.sharing-hidden ul {
+	background: white url('images/share-bg.png') repeat-y center center;
+	margin: 0 !important;
+}
+
+.sharing-hidden li {
+	padding-left:10px !important;
+	padding-right:10px !important;
+	padding-top:0px !important;
+	margin: 0 !important;
+	margin-bottom:10px !important;
+}
+
+.sharing-hidden li a {
+	padding-right: 20px;
+	font-size: 11px;
+	line-height: 16px;
+	display: block;
+	text-decoration: none !important;
+	border-bottom: 0px !important;
+
+}
+
+.sharing-hidden li a.no-text{
+	width: 16px;
+	height:16px;
+}
+
+.sharing li a.no-text{
+	width: 16px;
+	height: 16px;
+	margin-top: 4px;
+	padding: 0px !important;
+}
+
+.sharing li a.no-icon {
+	background: none !important;
+	padding-left: 0 !important;
+}
+
+.sharing li.share-end, .sharing-hidden li.share-end {
+	clear: both;
+	height: 0;
+	padding: 0px !important;
+	margin: 0px !important;
+	width: 0;
+	visibility: hidden;
+	float: none;
+}
+
+.sharing .sharing-anchor {
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border: 1px solid #d8d8d8;
+	float: left;
+	line-height: 20px;
+	padding: 0 8px 0 21px;
+	background: #fff url('images/sharing-hidden.png') no-repeat 0px center;
+	font-weight: normal;
+}
+
+.sharing-clear {
+	clear: left;
+}
+
+.response {
+}
+
+.response-title {
+	font-size: 12px;
+	line-height: 18px;
+	font-weight: bold;
+}
+
+.response-sub {
+	font-size: 11px;
+	line-height: 24px;
+}
+
+.response-close .sharing_cancel {
+	padding: 0px !important;
+}
+
+li.share-email, li.share-custom a.sharing-anchor {
+	display: none !important;
+}
+
+li.share-service-visible {
+	display: list-item !important;
+}
+
+li.share-custom a.sharing-anchor.share-service-visible {
+	display: inline !important;
+}
+
+/* =RTL
+-------------------------------------------------------------- */
+body.rtl .sharing ul {
+	float: right;
+}
+body.rtl .sharing li {
+	margin: 0 0 0 10px !important;
+}
