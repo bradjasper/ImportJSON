@@ -207,6 +207,7 @@ function ImportJSONFromSheet(sheetName, query, options) {
  *                        contains the headers for the data, so test for row==0 to process headers only.
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
+ * @customfunction
  **/
 function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
