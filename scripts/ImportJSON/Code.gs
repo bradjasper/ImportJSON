@@ -325,7 +325,7 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
       if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
         dataInserted = true;
 
-        if (i > 0 && data[state.rowIndex]) {
+        if (data[state.rowIndex]) {
           state.rowIndex++;
         }
       }
