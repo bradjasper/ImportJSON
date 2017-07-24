@@ -6,6 +6,7 @@ Import JSON from any URL directly into your Google Sheets. `ImportJSON.gs` adds 
 
 Here are all of the functions included
 
+| Function                |  Description                                                                                          |
 |-------------------------|------------------------------------------------------------------------------------------------------|
 | **ImportJSON**          | For use by end users to import a JSON feed from a URL                                                |
 | **ImportJSONFromSheet** | For use by end users to import JSON from one of the Sheets                                           |
