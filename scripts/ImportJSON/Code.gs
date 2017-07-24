@@ -238,6 +238,7 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
  * @param {parseOptions}  a comma-separated list of options that may alter processing of the data (optional)
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
+ * @customfunction
  **/
 function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
   var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
