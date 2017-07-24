@@ -32,4 +32,8 @@ Review `ImportJSON.gs` for more info on how to use these in detail.
 ## Website archive
 This code base used to be hosted at http://blog.fastfedora.com/projects/import-json and contained a lot of useful information. It has been archived at https://rawgit.com/bradjasper/ImportJSON/master/archive/blog.fastfedora.com/projects/import-json.html
 
+## Alternatives
+Some of this if possible internally with Google App Scripts External APIs, like UrlFetch: https://developers.google.com/apps-script/guides/services/external
+
+These require a Google account and an explicit permission, but in some cases may be a good fit.
 
