@@ -1,9 +1,10 @@
 /*====================================================================================================================================*
-  ImportJSON by Trevor Lohrbeer (@FastFedora)
+  ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.3.0
-  Project Page: http://blog.fastfedora.com/projects/import-json
-  Copyright:    (c) 2012-2013 by Trevor Lohrbeer
+  Version:      1.4.0
+  Project Page: https://github.com/bradjasper/ImportJSON
+  Copyright:    (c) 2017 by Brad Jasper
+                (c) 2012-2017 by Trevor Lohrbeer
   License:      GNU General Public License, version 3 (GPL-3.0) 
                 http://www.opensource.org/licenses/gpl-3.0.html
   ------------------------------------------------------------------------------------------------------------------------------------
@@ -15,15 +16,14 @@
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
      ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
 
-  Future enhancements may include:
+  For future enhancements see https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
+  
+  For bug reports see https://github.com/bradjasper/ImportJSON/issues
 
-   - Support for a real XPath like syntax similar to ImportXML for the query parameter
-   - Support for OAuth authenticated APIs (see AddOAuthService__ function for failed experiment)
-
-  Or feel free to write these and add on to the library yourself!
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
+  1.4.0  Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
   1.3.0  Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
   1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
   1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
@@ -31,6 +31,7 @@
   1.1    Added support for the noHeaders option
   1.0    Initial release
  *====================================================================================================================================*/
+
 /**
  * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create 
  * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in 
