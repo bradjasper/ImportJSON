@@ -23,13 +23,13 @@
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
-  1.4.0  Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
+  1.4.0  (July 23, 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
   1.3.0  Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
   1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
   1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
   1.1.1  Added a version number using Google Scripts Versioning so other developers can use the library
-  1.1    Added support for the noHeaders option
-  1.0    Initial release
+  1.1.0  Added support for the noHeaders option
+  1.0.0  Initial release
  *====================================================================================================================================*/
 
 /**
