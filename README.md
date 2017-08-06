@@ -16,6 +16,8 @@ Here are all the functions available:
 
 Review `ImportJSON.gs` for more info on how to use these in detail.
 
+**Cryptocurrencies:** Looking to import JSON for cryptocurrency price data? Try <a href="https://github.com/bradjasper/CryptocurrencySpreadsheetUtils">CryptocurrencySpreadsheetUtils</a> instead which offers a useful `getCoinPrice()` function.
+
 ## Version
 - v1.4.0 (July 23, 2017) - Project transferred to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
 - v1.3.0 - Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
