@@ -64,7 +64,7 @@
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSON(url, query, parseOptions) {
+function ImportJSON(url, query, parseOptions, recalc) {
   return ImportJSONAdvanced(url, null, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
@@ -104,6 +104,7 @@ function ImportJSON(url, query, parseOptions) {
  * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @param {recalc}       [optional] a cell reference that allows the ImportJSON() to be re-loaded when changed.
  * @customfunction
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
