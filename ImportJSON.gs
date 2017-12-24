@@ -51,6 +51,7 @@
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noParseNumbers: Don't parse string as number
  *
  * For example:
  *
@@ -93,6 +94,7 @@ function ImportJSON(url, query, parseOptions) {
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noParseNumbers: Don't parse string as number
  *
  * For example:
  *
@@ -150,6 +152,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noParseNumbers: Don't parse string as number
  *
  * For example:
  *
@@ -477,6 +480,7 @@ function applyXPathRule_(rule, path, options) {
  *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noParseNumbers: Don't parse string as number
  */
 function defaultTransform_(data, row, column, options) {
   if (data[row][column] == null) {
@@ -501,6 +505,12 @@ function defaultTransform_(data, row, column, options) {
 
   if (hasOption_(options, "debugLocation")) {
     data[row][column] = "[" + row + "," + column + "]" + data[row][column];
+  }
+  
+  if (!hasOption_(options, "noParseNumbers")) {
+    if (!isNaN(Number(data[row][column]))) {
+      data[row][column] = parseFloat(data[row][column]);
+    }
   }
 }
 
