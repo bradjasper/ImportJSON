@@ -355,7 +355,16 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
   var dataInserted = false;
 
   if (Array.isArray(value) && isObjectArray_(value)) {
+    var queryStr = query.toString();
+    var queryArrayIndex = -1;
+    if(queryStr.match(/\[[0-9]+\]/g)) {
+      queryStr = queryStr.match(/\[[0-9]+\]/g)[0];
+      queryStr = queryStr.slice(1,queryStr.length-1);
+      queryArrayIndex = parseInt(queryStr);
+    }
+    
     for (var i = 0; i < value.length; i++) {
+      if (queryArrayIndex>=0 && i!=queryArrayIndex) continue;
       if (parseData_(headers, data, path, state, value[i], query, options, includeFunc)) {
         dataInserted = true;
 
@@ -449,7 +458,11 @@ function includeXPath_(query, path, options) {
       }
     }  
   } else {
-    return applyXPathRule_(query, path, options);
+    var cleanQueryStr = query.toString();
+    if(cleanQueryStr.match(/\[[0-9]+\]/g)) {
+      cleanQueryStr = cleanQueryStr.replace(/\[[0-9]+\]/g,"");
+    }
+    return applyXPathRule_(cleanQueryStr, path, options);
   }
   
   return false; 
@@ -459,7 +472,18 @@ function includeXPath_(query, path, options) {
  * Returns true if the rule applies to the given path. 
  */
 function applyXPathRule_(rule, path, options) {
-  return path.indexOf(rule) == 0; 
+  // sympotom:
+  //    when the path and the rule partially matched but not under the same xpath
+  //    it will still print that value under that xpath
+  // rootcause:
+  //    while the path matched the rule at the begining, the path can contain other characters
+  //    for example, path = /data/asset_longname and rule = /data/asset
+  // solution:
+  //    check the first remaining charater, if it's empty "" or slash "/" the function should return true.
+  //    the slash "/" means that there are members under the same xpath, so do not remove it.
+  if ( path.indexOf(rule) == 0 ){
+    return (path.charAt(rule.length) == "" || path.charAt(rule.length) == "/")
+  }
 }
 
 /** 
