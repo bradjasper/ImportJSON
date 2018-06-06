@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.4.0
+  Version:      1.4.1
   Project Page: https://github.com/bradjasper/ImportJSON
   Copyright:    (c) 2017 by Brad Jasper
                 (c) 2012-2017 by Trevor Lohrbeer
@@ -9,21 +9,19 @@
                 http://www.opensource.org/licenses/gpl-3.0.html
   ------------------------------------------------------------------------------------------------------------------------------------
   A library for importing JSON feeds into Google spreadsheets. Functions include:
-
      ImportJSON            For use by end users to import a JSON feed from a URL 
      ImportJSONFromSheet   For use by end users to import JSON from one of the Sheets
      ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
      ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
-
   For future enhancements see https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
   
   For bug reports see https://github.com/bradjasper/ImportJSON/issues
-
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
-  1.4.0  (July 23, 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
+  1.4.1  (June 6th 2018 - jackcarey) Added excess row removal to parseJSONObject_ function. Uses a column number to identify unique entries and fills in missing data before removing excess rows.
+  1.4.0  (July 23 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
   1.3.0  Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
   1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
   1.2.0  Added ImportJSONViaPost and support for fetchOptions to ImportJSONAdvanced
@@ -60,12 +58,13 @@
  * @param {url}          the URL to a public JSON feed
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @param {uniqueColumn} a column number for uniquely identifying rows and removing duplicate data.
  * @customfunction
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSON(url, query, parseOptions) {
-  return ImportJSONAdvanced(url, null, query, parseOptions, includeXPath_, defaultTransform_);
+function ImportJSON(url, query, parseOptions, uniqueColumn) {
+  return ImportJSONAdvanced(url, null, query, parseOptions, includeXPath_, defaultTransform_,uniqueColumn);
 }
 
 /**
@@ -104,11 +103,12 @@ function ImportJSON(url, query, parseOptions) {
  * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @param {uniqueColumn} a column number for uniquely identifying rows and removing duplicate data.
  * @customfunction
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
+function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions,uniqueColumn) {
   var postOptions = parseToObject_(fetchOptions);
   
   if (postOptions["method"] == null) {
@@ -128,7 +128,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
   convertToBool_(postOptions, "followRedirects");
   convertToBool_(postOptions, "muteHttpExceptions");
   
-  return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_);
+  return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_,uniqueColumn);
 }
 
 /**
@@ -159,15 +159,16 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  * @param {sheetName} the name of the sheet containg the text for the JSON
  * @param {query} a comma-separated lists of paths to import. Any path starting with one of these paths gets imported.
  * @param {options} a comma-separated list of options that alter processing of the data
+ * @param {uniqueColumn} a column number for uniquely identifying rows and removing duplicate data.
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  * @customfunction
  **/
-function ImportJSONFromSheet(sheetName, query, options) {
+function ImportJSONFromSheet(sheetName, query, options,uniqueColumn) {
 
   var object = getDataFromNamedSheet_(sheetName);
   
-  return parseJSONObject_(object, query, options, includeXPath_, defaultTransform_);
+  return parseJSONObject_(object, query, options, includeXPath_, defaultTransform_,uniqueColumn);
 }
 
 
@@ -207,15 +208,16 @@ function ImportJSONFromSheet(sheetName, query, options) {
  * @param {transformFunc} a function with the signature func(data, row, column, options) where data is a 2-dimensional array of the data 
  *                        and row & column are the current row and column being processed. Any return value is ignored. Note that row 0 
  *                        contains the headers for the data, so test for row==0 to process headers only.
+ * @param {uniqueColumn} a column number for uniquely identifying rows and removing duplicate data.
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  * @customfunction
  **/
-function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
+function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc,uniqueColumn) {
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
   var object   = JSON.parse(jsondata.getContentText());
   
-  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
+  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc,uniqueColumn);
 }
 
 /**
@@ -237,14 +239,15 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
  * @param {password}      the Password for authentication
  * @param {query}         the query passed to the include function (optional)
  * @param {parseOptions}  a comma-separated list of options that may alter processing of the data (optional)
+ * @param {uniqueColumn} a column number for uniquely identifying rows and removing duplicate data.
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  * @customfunction
  **/
-function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
+function ImportJSONBasicAuth(url, username, password, query, parseOptions,uniqueColumn) {
   var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
   var header = {headers: {Authorization: "Basic " + encodedAuthInformation}};
-  return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
+  return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_,uniqueColumn);
 }
 
 /** 
@@ -315,7 +318,7 @@ function AddOAuthService__(name, accessTokenUrl, requestTokenUrl, authorizationU
 /** 
  * Parses a JSON object and returns a two-dimensional array containing the data of that object.
  */
-function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
+function parseJSONObject_(object, query, options, includeFunc, transformFunc,uniqueColumn) {
   var headers = new Array();
   var data    = new Array();
   
@@ -331,7 +334,43 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
   
-  return hasOption_(options, "noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
+  var deDupeArray = hasOption_(options, "noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
+  
+  //remove excess rows by identifying unique entries and filling in gaps with matching rows
+  if(!isNaN(uniqueColumn)){
+    for(var j = 1 ; j<deDupeArray.length ; j++){
+    var currentRow = deDupeArray[j];
+    var prevRow = deDupeArray[j-1];
+  }
+    for(var l = deDupeArray.length-1 ; l > 1 ; l--){ //working backwards
+      var currCount = 0,
+          prevCount = 0;
+      var currIdentifier = deDupeArray[l][uniqueColumn];
+      var prevIdentifier = deDupeArray[l-1][uniqueColumn];
+      if(currIdentifier == prevIdentifier){ //if identifiers now match
+        for(var m in deDupeArray[l]){ //move through every cell in the row
+          if(deDupeArray[l][m] != false && deDupeArray[l][m] ? false : true){ // if current isblank
+            deDupeArray[l][m] = deDupeArray[l-1][m]; //replace current row with prev
+          }
+          if(deDupeArray[l-1][m] != false && deDupeArray[l-1][m] ? false : true){ //if prev is blank
+            deDupeArray[l-1][m] = deDupeArray[l][m]; //replace prev with current
+          }
+          if(deDupeArray[l][m] != false && deDupeArray[l][m] ? false : true){ //after copying data, check if cell is still blank
+            currCount += 1;
+          }
+          if(deDupeArray[l-1][m] != false && deDupeArray[l-1][m] ? false : true){ //after copying data, check if cell is still blank
+            prevCount +=1;
+          }
+        }
+        if(currCount>=prevCount){
+          deDupeArray.splice(l,1);
+        }
+      }
+    }    
+    
+  }
+  
+  return deDupeArray;
 }
 
 /** 
