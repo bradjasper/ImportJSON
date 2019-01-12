@@ -1,9 +1,9 @@
 /*====================================================================================================================================*
   ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.4.0
+  Version:      1.5.0
   Project Page: https://github.com/bradjasper/ImportJSON
-  Copyright:    (c) 2017 by Brad Jasper
+  Copyright:    (c) 2017-2019 by Brad Jasper
                 (c) 2012-2017 by Trevor Lohrbeer
   License:      GNU General Public License, version 3 (GPL-3.0) 
                 http://www.opensource.org/licenses/gpl-3.0.html
@@ -23,6 +23,7 @@
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
+  1.5.0  (January 11, 2019) Adds ability to include all headers in a fixed order even when no data is present for a given header in some or all rows.
   1.4.0  (July 23, 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
   1.3.0  Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
   1.2.1  Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
@@ -50,6 +51,7 @@
  *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
+ *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
  *
  * For example:
@@ -92,6 +94,7 @@ function ImportJSON(url, query, parseOptions) {
  *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
+ *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
  *
  * For example:
@@ -149,6 +152,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  *    noTruncate:    Don't truncate values
  *    rawHeaders:    Don't prettify headers
  *    noHeaders:     Don't include headers, only the data
+ *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
  *
  * For example:
@@ -321,6 +325,15 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   
   if (query && !Array.isArray(query) && query.toString().indexOf(",") != -1) {
     query = query.toString().split(",");
+  }
+
+  // Prepopulate the headers to lock in their order
+  if (hasOption_(options, "allHeaders"))
+  {
+    for (var i = 0; i < query.length; i++)
+    {
+      headers[query[i]] = Object.keys(headers).length;
+    }
   }
   
   if (options) {
