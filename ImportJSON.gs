@@ -328,7 +328,7 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   }
 
   // Prepopulate the headers to lock in their order
-  if (hasOption_(options, "allHeaders"))
+  if (hasOption_(options, "allHeaders") && Array.isArray(query))
   {
     for (var i = 0; i < query.length; i++)
     {
