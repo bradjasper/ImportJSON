@@ -29,8 +29,8 @@ Review `ImportJSON.gs` for more info on how to use these in detail.
 - v1.0.0 - Initial release
 
 ## How can you help?
-- Found a bug? Report it! https://github.com/bradjasper/ImportJSON/issues
-- Want to contribute? Submit an <a href="https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement">enhancement</a>
+- Found a bug? Report it! https://github.com/jackcarey/ImportJSON/issues
+- Want to contribute? Submit an <a href="https://github.com/jackcarey/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement">enhancement</a>
 
 ## Website archive
 This code base used to be hosted at http://blog.fastfedora.com/projects/import-json and contained a lot of useful information. It has been archived at https://rawgit.com/bradjasper/ImportJSON/master/archive/blog.fastfedora.com/projects/import-json.html
