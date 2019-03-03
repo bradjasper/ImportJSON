@@ -218,12 +218,25 @@ function ImportJSONFromSheet(sheetName, query, options) {
  * @customfunction
  **/
 function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
-  var key = [url,fetchOptions].join(),
-      cachedFetch = cache_check_(key);
-  var jsondata = cachedFetch ? cachedFetch : cache_check_(key,1,0,UrlFetchApp.fetch(url, fetchOptions),6);
+  var parseKey = [url,fetchOptions,query,parseOptions].join(),
+      cachedParse = cache_check_(parseKey,1);
+  if(cachedParse?1:0){
+    return cachedParse;
+  }else{
+  var fetchKey = [url,fetchOptions].join(),
+      cachedFetch = cache_check_(fetchKey);
+  var jsondata = cachedFetch;
+  if(jsondata?false:true){
+    var fetch = UrlFetchApp.fetch(url, fetchOptions);
+    if(fetch.getResponseCode()>=200 && fetch.getResponseCode()<300){
+    jsondata = cache_check_(fetchKey,1,0,fetch,6);
+    }else{
+      throw new Error(fetch);
+    }
+  }
   var object   = JSON.parse(jsondata.getContentText());
-  
-  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
+  return cache_check_(parseKey,1,0,parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc));
+  }
 }
 
 /**
@@ -235,15 +248,18 @@ function cache_check_(key,tryJSON,tryProps,value,write_hours){
   var cache = CacheService.getScriptCache(),
       seconds = 3600*(write_hours && !isNaN(write_hours) ? Math.min(6,Math.max(1/60,write_hours)) : 6);
   if(value?1:0){
+    //console.log("writing value '%s' to key '%s' for %s seconds",value,key,seconds);
    try{
       cache.put(key,(tryJSON?JSON.stringify(value):value),seconds);
       if(tryProps?1:0){
         PropertiesService.getScriptProperties().setProperty(key,(tryJSON?JSON.stringify(value):value));
       }
+     //console.log("value written");
    }catch(e){} //if too large, do nothing
     return value;
   }else{
     var stored = cache.get(key) ? cache.get(key) : tryProps ? PropertiesService.getScriptProperties().getProperty(key) : null;
+     //console.log("reading value '%s' from key '%s'",stored,key);
     return tryJSON ? JSON.parse(stored) : stored;
   }
 }
