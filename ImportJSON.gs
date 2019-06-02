@@ -423,7 +423,7 @@ function parseHeaders_(headers, data) {
  */
 function transformData_(data, options, transformFunc) {
   for (var i = 0; i < data.length; i++) {
-    for (var j = 0; j < data[i].length; j++) {
+    for (var j = 0; j < data[0].length; j++) {
       transformFunc(data, i, j, options);
     }
   }
