@@ -434,7 +434,7 @@ function transformData_(data, options, transformFunc) {
  * Returns true if the given test value is an object; false otherwise.
  */
 function isObject_(test) {
-  return Object.prototype.toString.call(test) === '[object Object]';
+  return typeof test === "object" && test !== null
 }
 
 /** 
