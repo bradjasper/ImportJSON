@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.5.0 + parse nulls fix + parse numbers as numeric
+  Version:      1.5.0 + parse nulls fix + parse stringified numbers as numeric + don't truncate numbers (and thus keep numeric)
   Project Page: https://github.com/bradjasper/ImportJSON
   Copyright:    (c) 2017-2019 by Brad Jasper
                 (c) 2012-2017 by Trevor Lohrbeer
@@ -510,14 +510,14 @@ function defaultTransform_(data, row, column, options) {
     data[row][column] = toTitleCase_(data[row][column].toString().replace(/[\/\_]/g, " "));
   }
   
-  if (!hasOption_(options, "noParseNumbers")) {
+  if (!hasOption_(options, "noParseNumbers") && typeof(data[row][column]) != 'number') {
     var num = filterFloat(data[row][column]);
     if (!isNaN(num)) {
       data[row][column] = num;
     }
   }
   
-  if (!hasOption_(options, "noTruncate") && data[row][column]) {
+  if (!hasOption_(options, "noTruncate") && typeof(data[row][column]) != 'number' && data[row][column]) {
     data[row][column] = data[row][column].toString().substr(0, 256);
   }
   
