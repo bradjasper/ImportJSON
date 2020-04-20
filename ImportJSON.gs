@@ -54,7 +54,7 @@
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
- *    numericCheck:  Change to numer format if possiable
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
@@ -98,7 +98,7 @@ function ImportJSON(url, query, parseOptions) {
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
- *    numericCheck:  Change to numer format if possiable
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
@@ -157,7 +157,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
- *    numericCheck:  Change to numer format if possiable
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
