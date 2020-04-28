@@ -54,11 +54,12 @@
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "/feed/entry/title,/feed/entry/content",
- *               "noInherit,noTruncate,rawHeaders")
+ *               "noInherit,noTruncate,rawHeaders,numericCheck")
  * 
  * @param {url}          the URL to a public JSON feed
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
@@ -97,11 +98,12 @@ function ImportJSON(url, query, parseOptions) {
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
- *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
+ *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders,numericCheck")
  * 
  * @param {url}          the URL to a public JSON feed
  * @param {payload}      the content to pass with the POST request; usually a URL encoded list of parameters separated by ampersands
@@ -155,6 +157,7 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  *    noHeaders:     Don't include headers, only the data
  *    allHeaders:    Include all headers from the query parameter in the order they are listed
  *    debugLocation: Prepend each value with the row & column it belongs in
+ *    numericCheck:  Change to number format if possible
  *
  * For example:
  *
@@ -515,6 +518,12 @@ function defaultTransform_(data, row, column, options) {
 
   if (hasOption_(options, "debugLocation")) {
     data[row][column] = "[" + row + "," + column + "]" + data[row][column];
+  }
+
+  if (hasOption_(options, "numericCheck") && data[row][column] ){
+    if(data[row][column].toString() == parseFloat(data[row][column])){
+      data[row][column] = parseFloat(data[row][column]);
+    }
   }
 }
 
