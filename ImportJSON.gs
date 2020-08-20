@@ -218,9 +218,17 @@ function ImportJSONFromSheet(sheetName, query, options) {
  **/
 function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
-  var object   = JSON.parse(jsondata.getContentText());
-  
-  return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
+  try {
+    var object   = JSON.parse(jsondata.getContentText());
+    return parseJSONObject_(object, query, parseOptions, includeFunc, transformFunc);
+  }
+  catch(err) {
+    var object   = jsondata.getContentText();
+    var firstBr = object.indexOf("[") > object.indexOf("{") ? object.indexOf("{") : object.indexOf("[");
+    var lastBr = object.lastIndexOf(")");
+    var newObject=  JSON.parse(object.substring(firstBr, lastBr));
+    return parseJSONObject_(newObject, query, parseOptions, includeFunc, transformFunc);    
+  }
 }
 
 /**
