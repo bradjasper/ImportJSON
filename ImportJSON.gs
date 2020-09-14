@@ -9,17 +9,15 @@
                 http://www.opensource.org/licenses/gpl-3.0.html
   ------------------------------------------------------------------------------------------------------------------------------------
   A library for importing JSON feeds into Google spreadsheets. Functions include:
-
-     ImportJSON            For use by end users to import a JSON feed from a URL 
-     ImportJSONFromSheet   For use by end users to import JSON from one of the Sheets
-     ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
-     ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
-     ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
-
+     ImportJSON             For use by end users to import a JSON feed from a URL 
+     ImportJSONFromSheet    For use by end users to import JSON from one of the Sheets
+     ImportJSONViaPost      For use by end users to import a JSON feed from a URL using POST parameters
+     ImportJSONAdvanced     For use by script developers to easily extend the functionality of this library
+     ImportJSONBasicAuth    For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
+     ImportJSONHeaderAPIKey For use by end users to import a JSON feed from a URL with API key passed in the header (added by Autumn Looijen)
   For future enhancements see https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
   
   For bug reports see https://github.com/bradjasper/ImportJSON/issues
-
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
@@ -249,6 +247,33 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
 function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
   var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
   var header = {headers: {Authorization: "Basic " + encodedAuthInformation}};
+  return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
+/**
+ * Helper function to authenticate with an API key passed in the headers, using ImportJSONAdvanced
+ *
+ * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create
+ * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in
+ * the JSON feed. The remaining rows contain the data.
+ *
+ * The fetchOptions can be used to change how the JSON feed is retrieved. For instance, the "method" and "payload" options can be
+ * set to pass a POST request with post parameters. For more information on the available parameters, see
+ * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app .
+ *
+ * Use the include and transformation functions to determine what to include in the import and how to transform the data after it is
+ * imported.
+ *
+ * @param {url}           the URL to a http basic auth protected JSON feed
+ * @param {key}           the API key for authentication
+ * @param {query}         the query passed to the include function (optional)
+ * @param {parseOptions}  a comma-separated list of options that may alter processing of the data (optional)
+ *
+ * @return a two-dimensional array containing the data, with the first row containing headers
+ * @customfunction
+ **/
+function ImportJSONHeaderAPIKey(url, key, query, parseOptions) {
+  var header = {headers: {"x-access-token": key}};
   return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
