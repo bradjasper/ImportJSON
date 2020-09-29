@@ -100,7 +100,7 @@ function ImportJSON(url, query, parseOptions) {
  *
  * For example:
  *
- *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
+ *   =ImportJSONViaPost("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
  *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
  * 
  * @param {url}          the URL to a public JSON feed
