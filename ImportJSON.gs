@@ -647,7 +647,3 @@ function getDataFromNamedSheet_(sheetName) {
   Logger.log(jsonText);
   return JSON.parse(jsonText);
 }
-
-function test() {
-  ImportJSONBasicAuth("https://phenomsports.myshopify.com/admin/api/2019-07/products.json?limit=5", "db33b6765ccf3d13e80fbbafc3194149","2da80ad0bce18eeec69a8d45aa683db9", "/products/template_suffix,/products/id,/products/product_type,/products/title,/products/variants/id,/products/variants/sku,/products/variants/price,/products/variants/compare_at_price");
-}
