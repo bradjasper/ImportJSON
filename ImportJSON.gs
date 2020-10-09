@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.5.0
+  Version:      1.5.0 + parse nulls fix + parse stringified numbers as numeric + don't truncate numbers (and thus keep numeric)
   Project Page: https://github.com/bradjasper/ImportJSON
   Copyright:    (c) 2017-2019 by Brad Jasper
                 (c) 2012-2017 by Trevor Lohrbeer
@@ -48,12 +48,13 @@
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
- *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
- *    rawHeaders:    Don't prettify headers
- *    noHeaders:     Don't include headers, only the data
- *    allHeaders:    Include all headers from the query parameter in the order they are listed
- *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noInherit:      Don't inherit values from parent elements
+ *    noTruncate:     Don't truncate values
+ *    rawHeaders:     Don't prettify headers
+ *    noHeaders:      Don't include headers, only the data
+ *    allHeaders:     Include all headers from the query parameter in the order they are listed
+ *    debugLocation:  Prepend each value with the row & column it belongs in
+ *    noParseNumbers: Don't parse numbers (keep as text)
  *
  * For example:
  *
@@ -434,7 +435,7 @@ function transformData_(data, options, transformFunc) {
  * Returns true if the given test value is an object; false otherwise.
  */
 function isObject_(test) {
-  return Object.prototype.toString.call(test) === '[object Object]';
+  return typeof(test) == 'object' && test !== null;
 }
 
 /** 
@@ -493,7 +494,7 @@ function applyXPathRule_(rule, path, options) {
  *    debugLocation: Prepend each value with the row & column it belongs in
  */
 function defaultTransform_(data, row, column, options) {
-  if (data[row][column] == null) {
+  if (data[row][column] === undefined) {
     if (row < 2 || hasOption_(options, "noInherit")) {
       data[row][column] = "";
     } else {
@@ -509,13 +510,27 @@ function defaultTransform_(data, row, column, options) {
     data[row][column] = toTitleCase_(data[row][column].toString().replace(/[\/\_]/g, " "));
   }
   
-  if (!hasOption_(options, "noTruncate") && data[row][column]) {
+  if (!hasOption_(options, "noParseNumbers") && typeof(data[row][column]) != 'number') {
+    var num = filterFloat(data[row][column]);
+    if (!isNaN(num)) {
+      data[row][column] = num;
+    }
+  }
+  
+  if (!hasOption_(options, "noTruncate") && typeof(data[row][column]) != 'number' && data[row][column]) {
     data[row][column] = data[row][column].toString().substr(0, 256);
   }
-
+  
   if (hasOption_(options, "debugLocation")) {
     data[row][column] = "[" + row + "," + column + "]" + data[row][column];
   }
+}
+
+function filterFloat(value) {
+  if(/^(-|\+)?([0-9]+(.[0-9]+)?|Infinity)$/.test(value)) {
+    return Number(value);
+  }
+  return NaN;
 }
 
 /** 
