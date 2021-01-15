@@ -12,6 +12,7 @@
 
      ImportJSON            For use by end users to import a JSON feed from a URL 
      ImportJSONFromSheet   For use by end users to import JSON from one of the Sheets
+     ImportJSONFromCell    For use by end users to import JSON from one of the Sheets Cells
      ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
      ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
@@ -23,6 +24,7 @@
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
+  1.6.1 (January 15, 2021) Added ImportJSONFromCell
   1.6.0 (June 2, 2019) Fixed null values (thanks @gdesmedt1)
   1.5.0  (January 11, 2019) Adds ability to include all headers in a fixed order even when no data is present for a given header in some or all rows.
   1.4.0  (July 23, 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
@@ -175,6 +177,45 @@ function ImportJSONFromSheet(sheetName, query, options) {
   return parseJSONObject_(object, query, options, includeXPath_, defaultTransform_);
 }
 
+/**
+ * Imports a JSON text from a named Sheet Cell and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create 
+ * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in 
+ * the JSON feed. The remaining rows contain the data. 
+ * 
+ * By default, data gets transformed so it looks more like a normal data import. Specifically:
+ *
+ *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values 
+ *      of the rows representing their parent elements.
+ *   - Values longer than 256 characters get truncated.
+ *   - Headers have slashes converted to spaces, common prefixes removed and the resulting text converted to title case. 
+ *
+ * To change this behavior, pass in one of these values in the options parameter:
+ *
+ *    noInherit:     Don't inherit values from parent elements
+ *    noTruncate:    Don't truncate values
+ *    rawHeaders:    Don't prettify headers
+ *    noHeaders:     Don't include headers, only the data
+ *    allHeaders:    Include all headers from the query parameter in the order they are listed
+ *    debugLocation: Prepend each value with the row & column it belongs in
+ *
+ * For example:
+ *
+ *   =ImportJSONFromCell("Source", "/feed/entry/title,/feed/entry/content",
+ *               "noInherit,noTruncate,rawHeaders")
+ * 
+ * @param {cellValue} text in JSON format, it can be something like =A1
+ * @param {query} a comma-separated lists of paths to import. Any path starting with one of these paths gets imported.
+ * @param {options} a comma-separated list of options that alter processing of the data
+ *
+ * @return a two-dimensional array containing the data, with the first row containing headers
+ * @customfunction
+ **/
+function ImportJSONFromCell(cellValue, query, options) {
+
+  var object = JSON.parse(cellValue);
+  
+  return parseJSONObject_(object, query, options, includeXPath_, defaultTransform_);
+}
 
 /**
  * An advanced version of ImportJSON designed to be easily extended by a script. This version cannot be called from within a 
