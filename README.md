@@ -16,9 +16,9 @@ Here are all the functions available:
 
 Review `ImportJSON.gs` for more info on how to use these in detail.
 
-**Cryptocurrencies:** Looking to import JSON for cryptocurrency price data? Try <a href="https://github.com/bradjasper/CryptocurrencySpreadsheetUtils">CryptocurrencySpreadsheetUtils</a> instead which offers a useful `getCoinPrice()` function.
-
 ## Version
+- v1.6.0 (June 2, 2019) Fixed null values (thanks @gdesmedt1)
+- v1.5.0 (January 11, 2019) Adds ability to include all headers in a fixed order even when no data is present for a given header in some or all rows.
 - v1.4.0 (July 23, 2017) - Project transferred to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
 - v1.3.0 - Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
 - v1.2.1 - Fixed a bug with how nested arrays are handled. The rowIndex counter wasn't incrementing properly when parsing.
