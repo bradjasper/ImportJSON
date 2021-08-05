@@ -30,6 +30,10 @@ Review `ImportJSON.gs` for more info on how to use these in detail.
 ## How can you help?
 - Found a bug? Report it! https://github.com/bradjasper/ImportJSON/issues
 - Want to contribute? Submit an <a href="https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement">enhancement</a>
+  - beware that on Windows you have to avoid problems with filenames by cloning project like this:
+     ```bash
+     git clone --sparse -c core.protectNTFS=false https://github.com/bradjasper/ImportJSON.git
+     ```
 
 ## Website archive
 This code base used to be hosted at http://blog.fastfedora.com/projects/import-json and contained a lot of useful information. It has been archived at https://rawgit.com/bradjasper/ImportJSON/master/archive/blog.fastfedora.com/projects/import-json.html
