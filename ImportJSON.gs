@@ -15,6 +15,7 @@
      ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
      ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
+     ImportJSONBasicAuthViaPost For use by end users to import a JSON feed from a URL with HTTP Basic Auth using POST parameters (added by Ben Blaine)
 
   For future enhancements see https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
   
@@ -250,6 +251,86 @@ function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
   var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
   var header = {headers: {Authorization: "Basic " + encodedAuthInformation}};
   return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
+
+/**
+ * Helper function to authenticate with basic auth informations and import a JSON feed via a POST request. 
+ * Returns the results to be inserted into a Google Spreadsheet. 
+ * The JSON feed is flattened to create a two-dimensional array. 
+ * The first row contains the headers, with each column header indicating the path to 
+ * that data in the JSON feed. The remaining rows contain the data.
+ *
+ * To retrieve the JSON, a POST request is sent to the URL and the payload is passed as the content of the request using the content 
+ * type "application/x-www-form-urlencoded". If the fetchOptions define a value for "method", "payload" or "contentType", these 
+ * values will take precedent. For example, advanced users can use this to make this function pass XML as the payload using a GET 
+ * request and a content type of "application/xml; charset=utf-8". For more information on the available fetch options, see
+ * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app . At this time the "headers" option is not supported.
+ * 
+ * By default, the returned data gets transformed so it looks more like a normal data import. Specifically:
+ *
+ *   - Data from parent JSON elements gets inherited to their child elements, so rows representing child elements contain the values 
+ *     of the rows representing their parent elements.
+ *   - Values longer than 256 characters get truncated.
+ *   - Headers have slashes converted to spaces, common prefixes removed and the resulting text converted to title case. 
+ *
+ * To change this behavior, pass in one of these values in the options parameter:
+ *
+ *    noInherit:     Don't inherit values from parent elements
+ *    noTruncate:    Don't truncate values
+ *    rawHeaders:    Don't prettify headers
+ *    noHeaders:     Don't include headers, only the data
+ *    allHeaders:    Include all headers from the query parameter in the order they are listed
+ *    debugLocation: Prepend each value with the row & column it belongs in
+ *
+ * For example:
+ *
+ *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
+ *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
+ * 
+ * @param {url}          the URL to a public JSON feed
+ * @param {username}     the Username for authentication
+ * @param {password}     the Password for authentication
+ * @param {payload}      the content to pass with the POST request; usually a URL encoded list of parameters separated by ampersands
+ * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
+ * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
+ * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @customfunction
+ *
+ * @return a two-dimensional array containing the data, with the first row containing headers
+ **/
+
+function ImportJSONBasicAuthViaPost(url, username, password, payload, fetchOptions, query, parseOptions) {
+  var postOptions = parseToObject_(fetchOptions);
+
+  var APIKey = Utilities.base64Encode(username + ":" + password);
+
+  const headers = {
+    'Authorization': `Basic ${APIKey}`
+  };
+
+  if (postOptions["headers"] == null) {
+    postOptions["headers"] = headers;
+  }
+  
+  if (postOptions["method"] == null) {
+    postOptions["method"] = "POST";
+  }
+
+  if (postOptions["payload"] == null) {
+    postOptions["payload"] = payload;
+  }
+
+  if (postOptions["contentType"] == null) {
+    postOptions["contentType"] = "application/x-www-form-urlencoded";
+  }
+
+  convertToBool_(postOptions, "validateHttpsCertificates");
+  convertToBool_(postOptions, "useIntranet");
+  convertToBool_(postOptions, "followRedirects");
+  convertToBool_(postOptions, "muteHttpExceptions");
+  
+  return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
 /** 
