@@ -1,7 +1,7 @@
 /*====================================================================================================================================*
   ImportJSON by Brad Jasper and Trevor Lohrbeer
   ====================================================================================================================================
-  Version:      1.5.0
+  Version:      1.7.0
   Project Page: https://github.com/bradjasper/ImportJSON
   Copyright:    (c) 2017-2019 by Brad Jasper
                 (c) 2012-2017 by Trevor Lohrbeer
@@ -23,7 +23,8 @@
   ------------------------------------------------------------------------------------------------------------------------------------
   Changelog:
   
-  1.6.0 (June 2, 2019) Fixed null values (thanks @gdesmedt1)
+  1.7.0  (August 5, 2021) Support 1D- and 2D-arrays as input for URLs to allow usage inside ARRAYFORMULA
+  1.6.0  (June 2, 2019) Fixed null values (thanks @gdesmedt1)
   1.5.0  (January 11, 2019) Adds ability to include all headers in a fixed order even when no data is present for a given header in some or all rows.
   1.4.0  (July 23, 2017) Transfer project to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
   1.3.0  Adds ability to import the text from a set of rows containing the text to parse. All cells are concatenated
@@ -48,19 +49,21 @@
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
- *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
- *    rawHeaders:    Don't prettify headers
- *    noHeaders:     Don't include headers, only the data
- *    allHeaders:    Include all headers from the query parameter in the order they are listed
- *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noInherit:        Don't inherit values from parent elements
+ *    noTruncate:       Don't truncate values
+ *    rawHeaders:       Don't prettify headers
+ *    noHeaders:        Don't include headers, only the data
+ *    allHeaders:       Include all headers from the query parameter in the order they are listed
+ *    debugLocation:    Prepend each value with the row & column it belongs in
+ *    keepInnerHeaders: For 1D- and 2D-arrays of URLs, if "noHeaders" option isn't present, include headers for all results, not
+ *                      only for the first row
  *
  * For example:
  *
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "/feed/entry/title,/feed/entry/content",
  *               "noInherit,noTruncate,rawHeaders")
  * 
- * @param {url}          the URL to a public JSON feed
+ * @param {url}          the URL to a public JSON feed, or 1D- or 2D-array of them
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
  * @customfunction
@@ -91,19 +94,21 @@ function ImportJSON(url, query, parseOptions) {
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
- *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
- *    rawHeaders:    Don't prettify headers
- *    noHeaders:     Don't include headers, only the data
- *    allHeaders:    Include all headers from the query parameter in the order they are listed
- *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noInherit:        Don't inherit values from parent elements
+ *    noTruncate:       Don't truncate values
+ *    rawHeaders:       Don't prettify headers
+ *    noHeaders:        Don't include headers, only the data
+ *    allHeaders:       Include all headers from the query parameter in the order they are listed
+ *    debugLocation:    Prepend each value with the row & column it belongs in
+ *    keepInnerHeaders: For 1D- and 2D-arrays of URLs, if "noHeaders" option isn't present, include headers for all results, not
+ *                      only for the first row
  *
  * For example:
  *
  *   =ImportJSON("http://gdata.youtube.com/feeds/api/standardfeeds/most_popular?v=2&alt=json", "user=bob&apikey=xxxx", 
  *               "validateHttpsCertificates=false", "/feed/entry/title,/feed/entry/content", "noInherit,noTruncate,rawHeaders")
  * 
- * @param {url}          the URL to a public JSON feed
+ * @param {url}          the URL to a public JSON feed, or 1D- or 2D-array of them
  * @param {payload}      the content to pass with the POST request; usually a URL encoded list of parameters separated by ampersands
  * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
@@ -149,12 +154,14 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
  *
  * To change this behavior, pass in one of these values in the options parameter:
  *
- *    noInherit:     Don't inherit values from parent elements
- *    noTruncate:    Don't truncate values
- *    rawHeaders:    Don't prettify headers
- *    noHeaders:     Don't include headers, only the data
- *    allHeaders:    Include all headers from the query parameter in the order they are listed
- *    debugLocation: Prepend each value with the row & column it belongs in
+ *    noInherit:        Don't inherit values from parent elements
+ *    noTruncate:       Don't truncate values
+ *    rawHeaders:       Don't prettify headers
+ *    noHeaders:        Don't include headers, only the data
+ *    allHeaders:       Include all headers from the query parameter in the order they are listed
+ *    debugLocation:    Prepend each value with the row & column it belongs in
+ *    keepInnerHeaders: For 1D- and 2D-arrays of URLs, if "noHeaders" option isn't present, include headers for all results, not
+ *                      only for the first row
  *
  * For example:
  *
@@ -172,7 +179,7 @@ function ImportJSONFromSheet(sheetName, query, options) {
 
   var object = getDataFromNamedSheet_(sheetName);
   
-  return parseJSONObject_(object, query, options, includeXPath_, defaultTransform_);
+  return parseJSONObject_(object, query, makeOptions_(options), includeXPath_, defaultTransform_);
 }
 
 
@@ -203,7 +210,7 @@ function ImportJSONFromSheet(sheetName, query, options) {
  * In this example, the import function checks to see if the path to the data being imported starts with the query. The transform 
  * function takes the data and truncates it. For more robust versions of these functions, see the internal code of this library.
  *
- * @param {url}           the URL to a public JSON feed
+ * @param {url}           the URL to a public JSON feed, or 1D- or 2D-array of them
  * @param {fetchOptions}  an object whose properties are options used to retrieve the JSON feed from the URL
  * @param {query}         the query passed to the include function
  * @param {parseOptions}  a comma-separated list of options that may alter processing of the data
@@ -217,6 +224,29 @@ function ImportJSONFromSheet(sheetName, query, options) {
  * @customfunction
  **/
 function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
+  parseOptions = makeOptions_(parseOptions);
+  const addNoHeaders = !parseOptions.has("keepInnerHeaders");
+  const noHeadersOptions = new Set(parseOptions);
+  noHeadersOptions.add("noHeaders");
+
+  if (Array.isArray(url)) {
+    const res = url.reduce((rows,row,i) =>
+      rows.concat(
+        row.reduce(function (acc,cell) {
+          if (i > 0 && addNoHeaders) {
+            parseOptions = noHeadersOptions;
+          }
+          const res = ImportJSONAdvancedOne(cell, fetchOptions, query, parseOptions, includeFunc, transformFunc);
+          return acc.length ? acc.map((row, i) => row.concat(res[i])) : res;
+        }, [])
+      ), []);
+    return res;
+  } else {
+    return ImportJSONAdvancedOne(url, fetchOptions, query, parseOptions, includeFunc, transformFunc);
+  }
+}
+
+function ImportJSONAdvancedOne(url, fetchOptions, query, parseOptions, includeFunc, transformFunc) {
   var jsondata = UrlFetchApp.fetch(url, fetchOptions);
   var object   = JSON.parse(jsondata.getContentText());
   
@@ -237,7 +267,7 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
  * Use the include and transformation functions to determine what to include in the import and how to transform the data after it is
  * imported.
  *
- * @param {url}           the URL to a http basic auth protected JSON feed
+ * @param {url}           the URL to a http basic auth protected JSON feed, or 1D- or 2D-array of them
  * @param {username}      the Username for authentication
  * @param {password}      the Password for authentication
  * @param {query}         the query passed to the include function (optional)
@@ -329,7 +359,7 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   }
 
   // Prepopulate the headers to lock in their order
-  if (hasOption_(options, "allHeaders") && Array.isArray(query))
+  if (options.has("allHeaders") && Array.isArray(query))
   {
     for (var i = 0; i < query.length; i++)
     {
@@ -337,15 +367,11 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
     }
   }
   
-  if (options) {
-    options = options.toString().split(",");
-  }
-    
   parseData_(headers, data, "", {rowIndex: 1}, object, query, options, includeFunc);
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
   
-  return hasOption_(options, "noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
+  return options.has("noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
 }
 
 /** 
@@ -494,14 +520,14 @@ function applyXPathRule_(rule, path, options) {
  */
 function defaultTransform_(data, row, column, options) {
   if (data[row][column] == null) {
-    if (row < 2 || hasOption_(options, "noInherit")) {
+    if (row < 2 || options.has("noInherit")) {
       data[row][column] = "";
     } else {
       data[row][column] = data[row-1][column];
     }
   } 
 
-  if (!hasOption_(options, "rawHeaders") && row == 0) {
+  if (!options.has("rawHeaders") && row == 0) {
     if (column == 0 && data[row].length > 1) {
       removeCommonPrefixes_(data, row);  
     }
@@ -509,11 +535,11 @@ function defaultTransform_(data, row, column, options) {
     data[row][column] = toTitleCase_(data[row][column].toString().replace(/[\/\_]/g, " "));
   }
   
-  if (!hasOption_(options, "noTruncate") && data[row][column]) {
+  if (!options.has("noTruncate") && data[row][column]) {
     data[row][column] = data[row][column].toString().substr(0, 256);
   }
 
-  if (hasOption_(options, "debugLocation")) {
+  if (options.has("debugLocation")) {
     data[row][column] = "[" + row + "," + column + "]" + data[row][column];
   }
 }
@@ -569,10 +595,10 @@ function toTitleCase_(text) {
 }
 
 /** 
- * Returns true if the given set of options contains the given option.
+ * Creates a set of option strings from input options
  */
-function hasOption_(options, option) {
-  return options && options.indexOf(option) >= 0;
+function makeOptions_(options) {
+  return new Set(options ? options.toString().split(",") : []);
 }
 
 /** 
