@@ -108,11 +108,12 @@ function ImportJSON(url, query, parseOptions) {
  * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @authorization {authorization} authorization value that will be sent in the headers usually an API KEY  
  * @customfunction
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
+function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions, authorization) {
   var postOptions = parseToObject_(fetchOptions);
   
   if (postOptions["method"] == null) {
@@ -125,6 +126,12 @@ function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
 
   if (postOptions["contentType"] == null) {
     postOptions["contentType"] = "application/x-www-form-urlencoded";
+  }
+  
+  if (authorization != null) {
+    postOptions["headers"] = {
+       Authorization : authorization
+    }
   }
 
   convertToBool_(postOptions, "validateHttpsCertificates");
