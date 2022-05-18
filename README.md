@@ -12,6 +12,7 @@ Here are all the functions available:
 |-------------------------|-----------------------------------------------------------------------------------|
 | **ImportJSON**          | For use by end users to import a JSON feed from a URL                             |
 | **ImportJSONFromSheet** | For use by end users to import JSON from one of the Sheets                        |
+| **ImportJSONFromCell**  | For use by end users to import JSON from one of the Sheets cells                  |
 | **ImportJSONViaPost**   | For use by end users to import a JSON feed from a URL using POST parameters       |
 | **ImportJSONBasicAuth** | For use by end users to import a JSON feed from a URL with HTTP Basic Auth        |
 | **ImportJSONAdvanced**  | For use by script developers to easily extend the functionality of this library   |
@@ -19,6 +20,7 @@ Here are all the functions available:
 Review `ImportJSON.gs` for more info on how to use these in detail.
 
 ## Version
+- v1.6.1 (January 15, 2021) Added ImportJSONFromCell
 - v1.6.0 (June 2, 2019) Fixed null values (thanks @gdesmedt1)
 - v1.5.0 (January 11, 2019) Adds ability to include all headers in a fixed order even when no data is present for a given header in some or all rows.
 - v1.4.0 (July 23, 2017) - Project transferred to Brad Jasper. Fixed off-by-one array bug. Fixed previous value bug. Added custom annotations. Added ImportJSONFromSheet and ImportJSONBasicAuth.
