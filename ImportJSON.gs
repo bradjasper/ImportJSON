@@ -15,6 +15,7 @@
      ImportJSONViaPost     For use by end users to import a JSON feed from a URL using POST parameters
      ImportJSONAdvanced    For use by script developers to easily extend the functionality of this library
      ImportJSONBasicAuth   For use by end users to import a JSON feed from a URL with HTTP Basic Auth (added by Karsten Lettow)
+     ImportJSONBearerAuth  For use by end users to import a JSON feed from a URL with HTTP Bearer Auth
 
   For future enhancements see https://github.com/bradjasper/ImportJSON/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement
   
@@ -108,12 +109,22 @@ function ImportJSON(url, query, parseOptions) {
  * @param {fetchOptions} a comma-separated list of options used to retrieve the JSON feed from the URL
  * @param {query}        a comma-separated list of paths to import. Any path starting with one of these paths gets imported.
  * @param {parseOptions} a comma-separated list of options that alter processing of the data
+ * @param {username} username for basic auth requests
+ * @param {pasword} password for basic auth requests
  * @customfunction
  *
  * @return a two-dimensional array containing the data, with the first row containing headers
  **/
-function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
+function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions, username, password) {
   var postOptions = parseToObject_(fetchOptions);
+
+  var APIKey = Utilities.base64Encode(username + ":" + password);
+
+  if (postOptions["headers"] == null) {
+    postOptions["headers"] = {
+      'Authorization': `Basic ${APIKey}`
+    };
+  }
   
   if (postOptions["method"] == null) {
     postOptions["method"] = "POST";
@@ -224,7 +235,7 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
 }
 
 /**
- * Helper function to authenticate with basic auth informations using ImportJSONAdvanced
+ * Helper functions to authenticate with basic and beaerer auth informations using ImportJSONAdvanced
  *
  * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create
  * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in
@@ -249,6 +260,11 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
 function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
   var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
   var header = {headers: {Authorization: "Basic " + encodedAuthInformation}};
+  return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
+function ImportJSONBearerAuth(url, bearerToken, query, parseOptions) {
+  var header = {headers: {Authorization: "Bearer " + bearerToken}};
   return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
