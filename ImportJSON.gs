@@ -471,9 +471,54 @@ function includeXPath_(query, path, options) {
 
 /** 
  * Returns true if the rule applies to the given path. 
+ *
+ * Use /* to match any string, which can be handy for extracting data
+ * from a dictionary of objects with unique keys.
+ *
+ * For example, if we only wanted the values:
+ * {"data": {"A":{"key":"value"}, "B":{"key","value"}} }
+ * 
+ * We could use this rule to extract the values:
+ * "/data/ * /key"    (minus spaces around "*")
+ * 
  */
 function applyXPathRule_(rule, path, options) {
-  return path.indexOf(rule) == 0; 
+  
+  //original check
+  if(path.indexOf(rule) == 0)
+  {
+    return true;
+  }
+
+  //if there are no fuzzy rules, we failed to match and can return
+  if(rule.indexOf("/*") == -1)
+  {
+    return false;
+  }
+
+  var rule_pieces = rule.split("/");
+  var path_pieces = path.split("/");
+  
+  //exact length matches only -- i.e. /path/* will match path/to but not path/to/rule
+  if(rule_pieces.length != path_pieces.length)
+  {
+    return false;
+  }
+
+  for(var i = 0; i < rule_pieces.length; i++)
+  {
+    if(rule_pieces[i] != "*")
+    {
+      if(rule_pieces[i] != path_pieces[i])
+      {
+        //bail out at first failure
+        return false;
+      }
+    }
+  }
+
+  //all our rule/path pieces lined up, keep us
+  return true;
 }
 
 /** 
