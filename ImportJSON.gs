@@ -252,6 +252,35 @@ function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
   return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
+
+/**
+ * Helper function to authenticate with token based auth informations using ImportJSONAdvanced
+ *
+ * Imports a JSON feed and returns the results to be inserted into a Google Spreadsheet. The JSON feed is flattened to create
+ * a two-dimensional array. The first row contains the headers, with each column header indicating the path to that data in
+ * the JSON feed. The remaining rows contain the data.
+ *
+ * The fetchOptions can be used to change how the JSON feed is retrieved. For instance, the "method" and "payload" options can be
+ * set to pass a POST request with post parameters. For more information on the available parameters, see
+ * https://developers.google.com/apps-script/reference/url-fetch/url-fetch-app .
+ *
+ * Use the include and transformation functions to determine what to include in the import and how to transform the data after it is
+ * imported.
+ *
+ * @param {url}           the URL to a http basic auth protected JSON feed
+ * @param {username}      the Username for authentication
+ * @param {password}      the Password for authentication
+ * @param {query}         the query passed to the include function (optional)
+ * @param {parseOptions}  a comma-separated list of options that may alter processing of the data (optional)
+ *
+ * @return a two-dimensional array containing the data, with the first row containing headers
+ * @customfunction
+ **/
+function ImportJSONTokenAuth(url, token, query, parseOptions) {
+  var header = {headers: {Authorization: "Bearer " + token}};
+  return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
+}
+
 /** 
  * Encodes the given value to use within a URL.
  *
