@@ -72,6 +72,57 @@ function ImportJSON(url, query, parseOptions) {
 }
 
 /**
+ * Creates a menu which, when selected, imports a JSON feed and inserts the results after the last row in a Google Spreadsheet.
+ * The JSON feed is flattened to create a two-dimensional array. The first row contains the headers, with each column header
+ * indicating the path to that data in the JSON feed. The remaining rows contain the data.
+ * All options are the same as the "basic" ImportJSON method.
+ * The use of a menu option versus a formula-style function is *required* in order to give permissions to Google Drive to
+ * allow access to the file.
+ **/
+
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('Import JSON')
+      .addItem('From Google Drive File', 'ImportJSONFromDrivePre')
+      .addToUi();
+}
+
+function ImportJSONFromDrivePre() {
+  
+  var rawHTML = "<div> Enter Drive Filename: <br> <textarea id='driveFile' name='driveFile' rows='1' cols='30'>file.json</textarea> <br> <br> Enter query options (fields): <br> <textarea id='query' name='query' rows='1' cols='30'>/column</textarea> <br> <br> Enter parse options: <br> <textarea id='parseOptions' name='parseOptions' rows='1' cols='30'>noHeaders</textarea> <br> <br> <input type='button' value='Submit' style='margin-top: 20px' onclick='parse()' /> </div> <script src='//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script> <script> function parse(){ var driveFile = $('#driveFile').val(); var query = $('#query').val(); var parseOptions = $('#parseOptions').val(); google.script.run.withSuccessHandler(close).ImportJSONFromDrivePost(driveFile, query, parseOptions); } function close(){ google.script.host.close(); } </script>"
+  var html = HtmlService
+     .createHtmlOutput(rawHTML)
+     .setWidth(400)
+     .setHeight(250);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Parse JSON From Google Drive File')
+  
+}
+
+function ImportJSONFromDrivePost(driveFile, query, parseOptions) {
+ 
+//  var fileName = "plan.json";
+  
+  var files = DriveApp.getFilesByName(driveFile);
+  if (files.hasNext())
+  {
+    var file = files.next();
+    var content = file.getBlob().getDataAsString();
+    var object   = JSON.parse(content);
+    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var result = parseJSONObject_(object, "/statistics", null, includeXPath_, defaultTransform_);
+    
+//    var jsondata = UrlFetchApp.fetch("https://tools.learningcontainer.com/sample-json.json", null);
+//    var object   = JSON.parse(jsondata.getContentText());
+//    var result = parseJSONObject_(object, "/address", "noHeaders", includeXPath_, defaultTransform_);
+
+    ss.getActiveSheet().getRange(ss.getLastRow()+2, 1, result.length, result[0].length).setValues(result);
+  }
+
+  return true;
+}
+
+/**
  * Imports a JSON feed via a POST request and returns the results to be inserted into a Google Spreadsheet. The JSON feed is 
  * flattened to create a two-dimensional array. The first row contains the headers, with each column header indicating the path to 
  * that data in the JSON feed. The remaining rows contain the data.
